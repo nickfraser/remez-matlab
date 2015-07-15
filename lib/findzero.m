@@ -1,5 +1,5 @@
 % By Sherif A. Tawfik, Faculty of Engineering, Cairo University
-function y=findzero(fun,x0,x1,varargin)
+function y=findzero(fun,x0,x1,maxIter,thresh,varargin)
 % fun is the function that we need to compute its root.
 % x0 and x1 are two arguments to the function such that the root that we
 % seek lie between them and the function has different sign at these two
@@ -29,7 +29,10 @@ f=feval(fun,x,varargin{:});
 
 % enter this root as long as the difference between the two points that
 % sandwitch the desired root is larger than a certain threshold
-while abs(f)>2^-52
+for i=1:maxIter,
+    if abs(f) <= thresh, % Break when converged.
+        break;
+    end
     % we keep one of the two old points that has a different sign than the
     % new point and we overwrite the other old point with the new point
     if sign(f)==sign(f0)
@@ -42,6 +45,8 @@ while abs(f)>2^-52
     x=x0 - f0 * ((x1-x0)/(f1-f0));
     f=feval(fun,x,varargin{:});
 end
+if i == maxIter, warning('FindZero did not converge after %d iterations.', i); end
 % at the end of the loop we reach the root with the desired precision and
 % it is given by x
 y=x;
+
