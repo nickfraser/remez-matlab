@@ -1,5 +1,23 @@
-% By Sherif A. Tawfik, Faculty of Engineering, Cairo University
-function A=remez(fun, fun_der,interval,order,varargin)
+function [A, b] = remez(fun, fun_der,interval,order,varargin)
+% REMEZ: An algorithm to calculate the minimax polynomial to a given function over an interval.
+%
+% Inputs:
+%   -fun: A string which computes the function that we want to model.
+%   -fun_der: A string which computes the derivative of fun.
+%   -interval: The start and end points of the interval over which we would like to model fun.
+%   -order: Order of the polynomial that we want to find.
+% Optional Inputs (given in 'varible', value pairs):
+%   -maxIter:
+%   -thresh:
+%   -findZeroThresh:
+%   -findZeroMaxIter:
+% Outputs:
+%   -A: Coefficients for the polynomial, p(x-interval(1)), and the maximum error A(end).
+%       Coefficients are in order of increasing powers of (x-interval(1)).
+%   -b: Coefficients for the polynomial, p(x).
+%
+% Originally written by Sherif A. Tawfik, Faculty of Engineering, Cairo University.
+% Modified by Nicholas J. Fraser, University of Sydney.
 
 % Specify some default settings.
 maxIter = 10;
@@ -89,4 +107,25 @@ for i=1:maxIter,
 end
 
 if i == maxIter, warning('Remez did not converge after %d iterations.', i); end
+
+% Convert coefficients to ones not biased by x0.
+% TODO: Make this its own function?
+% TODO: Calculate this using recursion?
+c = A(1:end-1);
+b = zeros(size(c));
+previousRow = zeros(size(c));
+x0 = interval(1);
+for i=1:length(c),
+    nextRow = zeros(size(c));
+    for j=i:-1:1,
+        d = i-j;
+        if j == 1,
+            nextRow(j) = 1;
+        else
+            nextRow(j) = previousRow(j) + previousRow(j-1);
+        end
+        b(j) = b(j) + c(i)*nextRow(j)*(-x0)^d;
+    end
+    previousRow = nextRow;
+end
 
